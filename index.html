@@ -1,41 +1,56 @@
+
 <!DOCTYPE html>
-<html lang="pt">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Temperatura de pirassununga</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 24px;
-            font-weight: bold;
-            color: white;
-            background-color: transparent;
-            text-align: center;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Mensagens da Live</title>
+  <style>
+    body {
+      background-color: transparent;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 20px;
+      margin: 0;
+      padding: 10px;
+    }
+    .mensagem {
+      margin-bottom: 10px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+      animation: fadeIn 1s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
-    <div id="weather">Carregando...</div>
+  <div id="mensagens"></div>
 
-    <script>
-        const apiKey = "a3b8536381a886b603d4d03ab2c635d3"; // Sua chave da API do OpenWeather
-        const city = "Pirassununga,BR";
-        const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=pt_br`;
+  <script>
+    const sheetID = "1nx546Zs9jiJyJZhF7YJWejwrY8BQMK3xOlCLAJl5s9w";
+    const sheetName = "Form Responses 1";
+    const url = `https://opensheet.elk.sh/${sheetID}/${sheetName}`;
 
-        async function fetchWeather() {
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                const temp = data.main.temp;
-                document.getElementById("weather").innerText = `🌡️ ${temp}°C em Pirassununga`;
-            } catch (error) {
-                document.getElementById("weather").innerText = "Erro ao carregar";
-            }
-        }
+    async function buscarMensagens() {
+      const res = await fetch(url);
+      const data = await res.json();
 
-        fetchWeather();
-        setInterval(fetchWeather, 60000); // Atualiza a cada 60 segundos
-    </script>
+      const container = document.getElementById("mensagens");
+      container.innerHTML = "";
+
+      data.slice(-10).forEach(item => {
+        const div = document.createElement("div");
+        div.className = "mensagem";
+        div.innerHTML = `<strong>${item["Nome ou Apelido"]}</strong>: ${item["Mensagem"] || ""}`;
+        container.appendChild(div);
+      });
+    }
+
+    buscarMensagens();
+    setInterval(buscarMensagens, 10000); // Atualiza a cada 10 segundos
+  </script>
 </body>
 </html>
