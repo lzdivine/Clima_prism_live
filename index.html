@@ -1,56 +1,135 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Mensagens da Live</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doações para LZDivine</title>
   <style>
     body {
-      background-color: transparent;
-      color: white;
       font-family: Arial, sans-serif;
-      font-size: 20px;
-      margin: 0;
-      padding: 10px;
+      background-color: #f5f5f5;
+      color: #333;
+      padding: 20px;
     }
-    .mensagem {
-      margin-bottom: 10px;
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.6);
-      border-radius: 10px;
-      animation: fadeIn 1s ease;
+    h1 {
+      text-align: center;
+      color: #4CAF50;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .donation-section {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .donation-button {
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+    .donation-button:hover {
+      background-color: #45a049;
+    }
+    .donation-message {
+      font-size: 16px;
+      margin-top: 20px;
+      color: #333;
+      text-align: center;
+    }
+    .donation-list {
+      margin-top: 30px;
+      font-size: 18px;
+      color: #333;
+      max-height: 300px;
+      overflow-y: auto;
     }
   </style>
 </head>
 <body>
-  <div id="mensagens"></div>
+  <h1>Doações para LZDivine</h1>
+
+  <!-- Seção de mensagem -->
+  <div class="donation-message">
+    <p><strong>Mensagem para a LZDivine</strong></p>
+    <form id="donationForm">
+      <label for="message">Deixe sua mensagem (opcional):</label><br>
+      <textarea id="message" name="message" rows="4" cols="50"></textarea><br>
+      <button type="submit" class="donation-button">Enviar Mensagem</button>
+    </form>
+    <p><strong>Se quiser doar, envie via Pix para: <u>47288405818</u></strong></p>
+  </div>
+
+  <!-- Seção de lista de doações -->
+  <div class="donation-section">
+    <h2>Últimas Doações</h2>
+    <div id="donationList" class="donation-list">
+      <!-- As doações aparecerão aqui -->
+    </div>
+  </div>
 
   <script>
-    const sheetID = "1nx546Zs9jiJyJZhF7YJWejwrY8BQMK3xOlCLAJl5s9w";
-    const sheetName = "Form Responses 1";
-    const url = `https://opensheet.elk.sh/${sheetID}/${sheetName}`;
+    const API_KEY = "AIzaSyBj2IlvSMrSsTl2U8EM7OoqaW93g_mI9M4"; // Sua chave da API
+    const SHEET_ID = "1nx546Zs9jiJyJZhF7YJWejwrY8BQMK3xOlCLAJl5s9w"; // ID da sua planilha
+    const RANGE = "A2:C"; // Defina o intervalo para as doações
 
-    async function buscarMensagens() {
-      const res = await fetch(url);
-      const data = await res.json();
+    // Função para pegar as doações da planilha
+    async function fetchDonations() {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data.values || [];
+    }
 
-      const container = document.getElementById("mensagens");
-      container.innerHTML = "";
+    // Função para exibir as doações
+    function displayDonations(donations) {
+      const donationList = document.getElementById('donationList');
+      donationList.innerHTML = ''; // Limpa a lista antes de exibir as novas
 
-      data.slice(-10).forEach(item => {
-        const div = document.createElement("div");
-        div.className = "mensagem";
-        div.innerHTML = `<strong>${item["Nome ou Apelido"]}</strong>: ${item["Mensagem"] || ""}`;
-        container.appendChild(div);
+      donations.forEach(donation => {
+        const div = document.createElement('div');
+        div.textContent = `Doação de ${donation[0]}: ${donation[1]} - Mensagem: ${donation[2] || 'Sem mensagem'}`;
+        donationList.appendChild(div);
       });
     }
 
-    buscarMensagens();
-    setInterval(buscarMensagens, 10000); // Atualiza a cada 10 segundos
+    // Função para enviar a mensagem do formulário
+    document.getElementById('donationForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = document.getElementById('message').value;
+      const username = prompt("Digite seu nome:");
+
+      if (username && message) {
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/A2:C2:append?valueInputOption=RAW&key=${API_KEY}`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            values: [[username, 'Valor doado (a ser atualizado)', message]]
+          })
+        });
+
+        if (response.ok) {
+          alert("Mensagem enviada com sucesso!");
+          document.getElementById('message').value = ''; // Limpa o campo de mensagem
+          fetchAndDisplayDonations();
+        } else {
+          alert("Erro ao enviar a mensagem. Tente novamente.");
+        }
+      }
+    });
+
+    // Função para carregar e mostrar as doações
+    async function fetchAndDisplayDonations() {
+      const donations = await fetchDonations();
+      displayDonations(donations);
+    }
+
+    // Carregar as doações assim que a página for carregada
+    window.onload = fetchAndDisplayDonations;
   </script>
 </body>
 </html>
