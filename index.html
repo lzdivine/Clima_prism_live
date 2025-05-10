@@ -1,135 +1,84 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Doações para LZDivine</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
-      color: #333;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #4CAF50;
-    }
-    .donation-section {
-      text-align: center;
-      margin-top: 20px;
-    }
-    .donation-button {
-      background-color: #4CAF50;
-      color: white;
-      font-size: 16px;
-      padding: 10px 20px;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.3s;
-    }
-    .donation-button:hover {
-      background-color: #45a049;
-    }
-    .donation-message {
-      font-size: 16px;
-      margin-top: 20px;
-      color: #333;
-      text-align: center;
-    }
-    .donation-list {
-      margin-top: 30px;
-      font-size: 18px;
-      color: #333;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doações ao Vivo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        #doacoes-container {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .doacao {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        .doacao strong {
+            color: #007BFF;
+        }
+    </style>
 </head>
 <body>
-  <h1>Doações para LZDivine</h1>
 
-  <!-- Seção de mensagem -->
-  <div class="donation-message">
-    <p><strong>Mensagem para a LZDivine</strong></p>
-    <form id="donationForm">
-      <label for="message">Deixe sua mensagem (opcional):</label><br>
-      <textarea id="message" name="message" rows="4" cols="50"></textarea><br>
-      <button type="submit" class="donation-button">Enviar Mensagem</button>
-    </form>
-    <p><strong>Se quiser doar, envie via Pix para: <u>47288405818</u></strong></p>
-  </div>
-
-  <!-- Seção de lista de doações -->
-  <div class="donation-section">
-    <h2>Últimas Doações</h2>
-    <div id="donationList" class="donation-list">
-      <!-- As doações aparecerão aqui -->
+    <h1>Últimas Doações ao Vivo</h1>
+    <p>Veja as últimas mensagens de doações recebidas.</p>
+    
+    <!-- Aqui as doações serão exibidas -->
+    <div id="doacoes-container">
+        <!-- As doações serão carregadas aqui -->
     </div>
-  </div>
 
-  <script>
-    const API_KEY = "AIzaSyBj2IlvSMrSsTl2U8EM7OoqaW93g_mI9M4"; // Sua chave da API
-    const SHEET_ID = "1nx546Zs9jiJyJZhF7YJWejwrY8BQMK3xOlCLAJl5s9w"; // ID da sua planilha
-    const RANGE = "A2:C"; // Defina o intervalo para as doações
+    <!-- Código JavaScript para buscar as doações da planilha -->
+    <script>
+        function fetchDataFromGoogleSheet() {
+            var sheetId = "1nx546Zs9jiJyJZhF7YJWejwrY8BQMK3xOlCLAJl5s9w";  // ID da sua planilha
+            var range = "A2:C";  // Intervalo de células que contém os dados (nome, mensagem, doação)
 
-    // Função para pegar as doações da planilha
-    async function fetchDonations() {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      return data.values || [];
-    }
+            var url = "https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range + "?key=AIzaSyBj2IlvSMrSsTl2U8EM7OoqaW93g_mI9M4"; // Substitua com sua chave da API
 
-    // Função para exibir as doações
-    function displayDonations(donations) {
-      const donationList = document.getElementById('donationList');
-      donationList.innerHTML = ''; // Limpa a lista antes de exibir as novas
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    var doacoes = data.values; // Supondo que os dados estejam no formato de array
 
-      donations.forEach(donation => {
-        const div = document.createElement('div');
-        div.textContent = `Doação de ${donation[0]}: ${donation[1]} - Mensagem: ${donation[2] || 'Sem mensagem'}`;
-        donationList.appendChild(div);
-      });
-    }
+                    // Limpar conteúdo antigo
+                    document.getElementById('doacoes-container').innerHTML = '';
 
-    // Função para enviar a mensagem do formulário
-    document.getElementById('donationForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const message = document.getElementById('message').value;
-      const username = prompt("Digite seu nome:");
+                    // Adicionar novas doações
+                    doacoes.forEach(function(doacao) {
+                        var nome = doacao[0];  // Nome da pessoa que fez a doação
+                        var mensagem = doacao[1];  // Mensagem da doação
+                        var valor = doacao[2];  // Valor da doação
 
-      if (username && message) {
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/A2:C2:append?valueInputOption=RAW&key=${API_KEY}`;
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            values: [[username, 'Valor doado (a ser atualizado)', message]]
-          })
-        });
-
-        if (response.ok) {
-          alert("Mensagem enviada com sucesso!");
-          document.getElementById('message').value = ''; // Limpa o campo de mensagem
-          fetchAndDisplayDonations();
-        } else {
-          alert("Erro ao enviar a mensagem. Tente novamente.");
+                        // Criar um novo elemento para cada doação
+                        var doacaoElement = document.createElement('div');
+                        doacaoElement.classList.add('doacao');
+                        doacaoElement.innerHTML = `<strong>${nome}</strong>: ${mensagem} - R$${valor}`;
+                        
+                        // Adicionar a doação na página
+                        document.getElementById('doacoes-container').appendChild(doacaoElement);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar dados:', error);
+                });
         }
-      }
-    });
 
-    // Função para carregar e mostrar as doações
-    async function fetchAndDisplayDonations() {
-      const donations = await fetchDonations();
-      displayDonations(donations);
-    }
+        // Chamar a função para buscar dados assim que o site for carregado
+        window.onload = fetchDataFromGoogleSheet;
+    </script>
 
-    // Carregar as doações assim que a página for carregada
-    window.onload = fetchAndDisplayDonations;
-  </script>
 </body>
 </html>
